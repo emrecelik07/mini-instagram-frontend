@@ -3,6 +3,7 @@ import {AppContext} from "../content/AppContext.jsx";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {toast} from "react-toastify";
+import TermsModal from '../components/TermsModal';
 
 
 function LoginPage() {
@@ -13,6 +14,11 @@ function LoginPage() {
     const [loading, setLoading] = useState(false);
     const {backendURL, setIsLoggedIn, getUserData} = useContext(AppContext);
     const navigate = useNavigate();
+
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
+    const openTermsModal = () => setShowTerms(true);
+    const closeTermsModal = () => setShowTerms(false);
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
@@ -48,6 +54,12 @@ function LoginPage() {
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
+    };
+    // forgot password
+    const handleForgotPassword = (e) => {
+        e.preventDefault();
+        localStorage.setItem('resetFlow', 'started');
+        navigate('/reset-password');
     };
 
     return (
@@ -121,7 +133,11 @@ function LoginPage() {
                                         Remember me
                                     </label>
                                 </div>
-                                <a href="#" className="link-secondary text-decoration-none">
+                                <a
+                                    href="#"
+                                    className="link-secondary text-decoration-none"
+                                    onClick={handleForgotPassword}
+                                >
                                     Forgot password?
                                 </a>
                             </div>
@@ -196,15 +212,21 @@ function LoginPage() {
                                 <input
                                     className="form-check-input me-2"
                                     type="checkbox"
-                                    value=""
                                     id="signupTerms"
+                                    checked={acceptedTerms}
+                                    onChange={(e) => setAcceptedTerms(e.target.checked)}
                                 />
                                 <label className="form-check-label" htmlFor="signupTerms">
-                                    I agree to the terms
+                                    I agree to the <a href="#" onClick={openTermsModal}>terms & conditions</a>
                                 </label>
+                                {showTerms && <TermsModal onClose={closeTermsModal} />}
                             </div>
 
-                            <button type="submit" className="btn btn-success w-100 mb-4">
+                            <button
+                                type="submit"
+                                className="btn btn-success w-100 mb-4"
+                                disabled={!acceptedTerms || loading}
+                            >
                                 Create account
                             </button>
                         </form>
