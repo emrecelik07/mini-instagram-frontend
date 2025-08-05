@@ -1,0 +1,36 @@
+/* 1. Full-viewport background */
+.login-page {
+    position: relative;
+    min-height: 100vh;
+    background: url("./assets/bg.jpg") center/cover no-repeat fixed; /* adjust path */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. Slightly whitening blur layer */
+.login-page .overlay {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(11px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* 3. Frosted-glass card that holds the tabs + forms */
+.login-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional tweak—nicer rounded inputs / buttons */
+.login-card .form-control,
+.login-card .btn {
+    border-radius: 8px;
+}
