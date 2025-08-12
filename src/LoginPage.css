@@ -2,7 +2,7 @@
 .login-page {
     position: relative;
     min-height: 100vh;
-    background: url("./assets/bg.jpg") center/cover no-repeat fixed; /* adjust path */
+    background: url("assets/img/bg.jpg") center/cover no-repeat fixed; /* adjust path */
     display: flex;
     align-items: center;
     justify-content: center;

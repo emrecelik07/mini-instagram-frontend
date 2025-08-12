@@ -1,7 +1,7 @@
 import {Link, useNavigate} from "react-router-dom";
 import {assets} from "../assets/assets.js";
 import {useContext, useEffect, useRef, useState} from "react";
-import {AppContext} from "../content/AppContext.jsx";
+import {AppContext} from "../context/AppContext.jsx";
 import axios from "axios";
 import {toast} from "react-toastify";
 
@@ -56,7 +56,6 @@ function ResetPasswordOtpPage() {
                 .map((input) => input?.value ?? "")
                 .join("");
             setOtp(enteredOtp);
-            console.log("Verifying OTP:", enteredOtp);
 
             setIsOtpSubmitted(true);
         } catch (err) {

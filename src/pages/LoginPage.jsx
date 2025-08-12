@@ -1,19 +1,20 @@
 import React, {useContext, useState} from 'react';
-import {AppContext} from "../content/AppContext.jsx";
+import {AppContext} from "../context/AppContext.jsx";
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
 import {toast} from "react-toastify";
 import TermsModal from '../components/TermsModal';
 import "../LoginPage.css";
+import {assets} from "../assets/assets.js";
 
 
 function LoginPage() {
     const [activeTab, setActiveTab] = useState('login');
     const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const {backendURL, setIsLoggedIn, getUserData} = useContext(AppContext);
+    const {backendURL, setIsLoggedIn, getUserData, api} = useContext(AppContext);
     const navigate = useNavigate();
 
     const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -25,12 +26,11 @@ function LoginPage() {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
-        axios.defaults.withCredentials = true;
         setLoading(true);
         try {
             if(activeTab === 'signup') {
                 //register api
-                const response = await axios.post(`${backendURL}/register`, {name, email, password})
+                const response = await api.post("/register", { name, username, email, password });
                 if(response.status === 201){
                     navigate("/login")
                     toast.success("User registered successfully.");
@@ -39,7 +39,7 @@ function LoginPage() {
                 }
 
             }else{
-                const response = await axios.post(`${backendURL}/login`, {email, password, rememberMe})
+                const response = await api.post("/login", { email, password, rememberMe });
 
                 if (response.status === 200){
                     setIsLoggedIn(true)
@@ -71,7 +71,16 @@ function LoginPage() {
             <div className={"overlay"}/>
 
             <div className="login-card">
-                <div className="container p-3 my-5 d-flex flex-column align-items-center">
+                <div className="container p-3 my-3 d-flex flex-column align-items-center">
+
+                    <div className="d-flex flex-column align-items-center mb-4">
+                        <img
+                            src={assets.logoBig}
+                            alt="Ministagram logo"
+                            style={{ width: "250px"}}
+                        />
+                    </div>
+
                     {/* Tabs */}
                     <ul className="nav nav-pills mb-3 w-100 justify-content-between" id="pills-tab" role="tablist">
                         <li className="nav-item flex-fill text-center" role="presentation">
@@ -186,6 +195,20 @@ function LoginPage() {
                                             placeholder="John Doe"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label htmlFor="signupUsername" className="form-label">
+                                            Username
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="signupUsername"
+                                            className="form-control"
+                                            placeholder="john01"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
                                         />
                                     </div>
 

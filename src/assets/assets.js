@@ -1,6 +1,6 @@
-import logo from './ministagram logo.png';
-import logoBig from './ministagram logo big.png';
-import bg from './bg.jpg';
+import logo from './img/ministagram logo.png';
+import logoBig from './img/ministagram logo big.png';
+import bg from './img/bg.jpg';
 
 export const assets = {
     logo,

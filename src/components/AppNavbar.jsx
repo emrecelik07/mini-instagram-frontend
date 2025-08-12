@@ -5,29 +5,27 @@ import {
     Form,
     FormControl,
     NavDropdown,
-    Button          // add Button
+    Button
 } from "react-bootstrap";
 import { Chat, Compass, PlusSquare, Heart } from "react-bootstrap-icons";
 import { assets } from "../assets/assets.js";
 import { useContext } from "react";
-import { AppContext } from "../content/AppContext.jsx";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext.jsx";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 function AppNavbar() {
     const navigate = useNavigate();
     const {
         userData,
-        backendURL,
         setUserData,
-        setIsLoggedIn
+        setIsLoggedIn,
+        api,
     } = useContext(AppContext);
 
     const handleLogout = async () => {
         try {
-            axios.defaults.withCredentials = true;
-            const res = await axios.post(`${backendURL}/logout`);
+            const res = await api.post("/logout");
             if (res.status === 200) {
                 setIsLoggedIn(false);
                 setUserData(null);
@@ -42,7 +40,7 @@ function AppNavbar() {
         <Navbar bg="white" expand="md" className="border-bottom shadow-sm pb-0">
             <Container>
                 {/* logo */}
-                <Navbar.Brand href="/" className="p-0">
+                <Navbar.Brand as={Link} to="/" className="p-0">
                     <img src={assets.logo} alt="logo" height={32} />
                 </Navbar.Brand>
 
@@ -62,7 +60,6 @@ function AppNavbar() {
                             />
                         </Form>
 
-                        {/* burger on mobile */}
                         <Navbar.Toggle aria-controls="main-nav" />
 
                         {/* icons + avatar */}
@@ -71,16 +68,16 @@ function AppNavbar() {
                             className="justify-content-end align-items-center"
                         >
                             <Nav className="gap-3">
-                                <Nav.Link href="/messages">
+                                <Nav.Link as={Link} to="/messages">
                                     <Chat size={20} />
                                 </Nav.Link>
-                                <Nav.Link href="/explore">
+                                <Nav.Link as={Link} to="/explore">
                                     <Compass size={20} />
                                 </Nav.Link>
-                                <Nav.Link href="/create">
+                                <Nav.Link as={Link} to="/create">
                                     <PlusSquare size={20} />
                                 </Nav.Link>
-                                <Nav.Link href="/notifications">
+                                <Nav.Link as={Link} to="/notifications">
                                     <Heart size={20} />
                                 </Nav.Link>
 
@@ -97,8 +94,8 @@ function AppNavbar() {
                                         />
                                     }
                                 >
-                                    <NavDropdown.Item href="/profile">Profile</NavDropdown.Item>
-                                    <NavDropdown.Item href="/saved">Saved</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/saved">Saved</NavDropdown.Item>
                                     <NavDropdown.Divider />
                                     <NavDropdown.Item onClick={handleLogout}>
                                         Log out

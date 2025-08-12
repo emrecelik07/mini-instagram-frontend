@@ -1,4 +1,4 @@
-import {AppContext} from "../content/AppContext.jsx";
+import {AppContext} from "../context/AppContext.jsx";
 import {assets} from "../assets/assets.js";
 import {useContext} from "react";
 

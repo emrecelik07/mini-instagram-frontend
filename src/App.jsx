@@ -3,15 +3,18 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { ToastContainer } from "react-toastify";
 import { useContext } from "react";
 
-import { AppContextProvider, AppContext } from "./content/AppContext.jsx"; // assumes ctx exposes isLoggedIn
+import { AppContextProvider, AppContext } from "./context/AppContext.jsx"; // assumes ctx exposes isLoggedIn
 import HomePage    from "./pages/HomePage.jsx";
 import WelcomePage from "./pages/WelcomePage.jsx";
 import LoginPage   from "./pages/LoginPage.jsx";
 import ResetPasswordOtpPage from "./pages/ResetPasswordOtpPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 function PrivateRoute({ children }) {
-    const { isLoggedIn } = useContext(AppContext);
+    const { isLoggedIn, authReady  } = useContext(AppContext);
     const location = useLocation();
+
+    if (!authReady) return null;
 
     return isLoggedIn
         ? children
@@ -19,7 +22,7 @@ function PrivateRoute({ children }) {
 }
 
 function PublicRoute({ children }) {
-    const { isLoggedIn } = useContext(AppContext);
+    const { isLoggedIn} = useContext(AppContext);
     return !isLoggedIn
         ? children
         : <Navigate to="/" replace/>;
@@ -64,6 +67,16 @@ export default function App() {
                             </PrivateRoute>
                         }
                     />
+
+                    <Route
+                        path="/profile"
+                        element={
+                            <PrivateRoute>
+                                <ProfilePage />
+                            </PrivateRoute>
+                        }
+                    />
+
 
                 </Routes>
         </AppContextProvider>
