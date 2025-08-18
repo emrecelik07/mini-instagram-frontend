@@ -9,6 +9,8 @@ import WelcomePage from "./pages/WelcomePage.jsx";
 import LoginPage   from "./pages/LoginPage.jsx";
 import ResetPasswordOtpPage from "./pages/ResetPasswordOtpPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import SettingsPage from "./pages/SettingsPage.jsx";
+import UserProfilePage from "./pages/UserProfilePage.jsx";
 
 function PrivateRoute({ children }) {
     const { isLoggedIn, authReady  } = useContext(AppContext);
@@ -73,6 +75,24 @@ export default function App() {
                         element={
                             <PrivateRoute>
                                 <ProfilePage />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/settings"
+                        element={
+                            <PrivateRoute>
+                                <SettingsPage />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/user/:username"
+                        element={
+                            <PrivateRoute>
+                                <UserProfilePage />
                             </PrivateRoute>
                         }
                     />

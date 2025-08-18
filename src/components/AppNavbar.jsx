@@ -2,8 +2,6 @@ import {
     Navbar,
     Container,
     Nav,
-    Form,
-    FormControl,
     NavDropdown,
     Button
 } from "react-bootstrap";
@@ -13,6 +11,8 @@ import { useContext } from "react";
 import { AppContext } from "../context/AppContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import SearchBar from "./SearchBar.jsx";
+import avatarFallback from "../assets/img/avatarfallback.png";
 
 function AppNavbar() {
     const navigate = useNavigate();
@@ -49,16 +49,7 @@ function AppNavbar() {
                 {userData ? (
                     <>
                         {/* search */}
-                        <Form className="d-none d-md-flex mx-auto" role="search">
-                            <FormControl
-                                type="search"
-                                placeholder="Search"
-                                aria-label="Search"
-                                size="sm"
-                                className="bg-light border-0 px-2"
-                                style={{ width: 250 }}
-                            />
-                        </Form>
+                        <SearchBar />
 
                         <Navbar.Toggle aria-controls="main-nav" />
 
@@ -86,11 +77,14 @@ function AppNavbar() {
                                     id="profile-menu"
                                     title={
                                         <img
-                                            src="/avatar.jpg"
+                                            src={userData?.profileImageUrl && userData.profileImageUrl.trim() !== "" ? 
+                                                `http://localhost:8080${userData.profileImageUrl}` : 
+                                                avatarFallback}
                                             alt="Profile"
                                             width={24}
                                             height={24}
                                             className="rounded-circle"
+                                            style={{ objectFit: "cover" }}
                                         />
                                     }
                                 >

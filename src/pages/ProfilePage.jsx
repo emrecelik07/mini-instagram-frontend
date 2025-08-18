@@ -19,8 +19,13 @@ export default function ProfilePage() {
 
     const avatarSrc = useMemo(() => {
         const base = preview || userData?.profileImageUrl || avatarFallback;
-        if (!base) return base;
+        if (!base) return avatarFallback;
         if (typeof base === "string" && base.startsWith("blob:")) return base; // don't touch blobs
+        if (typeof base === "string" && base.startsWith("/api/v1.0")) {
+            // Convert backend URL to frontend URL
+            const backendUrl = "http://localhost:8080";
+            return `${backendUrl}${base}${base.includes("?") ? "&" : "?"}v=${imgVersion}`;
+        }
         return `${base}${base.includes("?") ? "&" : "?"}v=${imgVersion}`;
     }, [preview, userData?.profileImageUrl, imgVersion]);
 
@@ -102,17 +107,17 @@ export default function ProfilePage() {
                             <Button as={Link} to="/settings" variant="outline-primary" size="sm">
                                 Edit Profile
                             </Button>
-                            <Button as={Link} to="/settings" variant="outline-secondary" size="sm">
-                                Settings
-                            </Button>
                         </div>
                         <div className="d-flex gap-4 mt-3">
                             <span><strong>{userData?.postsCount ?? 0}</strong> posts</span>
                             <span><strong>{userData?.followersCount ?? 0}</strong> followers</span>
                             <span><strong>{userData?.followingCount ?? 0}</strong> following</span>
                         </div>
+                        <div className="mt-2">
+                            <strong>{userData?.name}</strong>
+                        </div>
                         <div className="mt-2 text-muted">
-                            {userData?.bio ?? "Tell the world about yourself…"}
+                            {userData?.bio || "Tell the world about yourself…"}
                         </div>
                     </Col>
                 </Row>
