@@ -1,0 +1,274 @@
+.user-profile-page {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.user-profile-content {
+  padding-top: 60px;
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 60px 20px 20px;
+}
+
+.user-profile-header {
+  margin-bottom: 44px;
+  padding: 30px 0;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f8ff;
+}
+
+.user-profile-info {
+  display: flex;
+  gap: 80px;
+}
+
+.user-profile-avatar-section {
+  flex-shrink: 0;
+}
+
+.user-profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #dbdbdb;
+}
+
+.user-profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-profile-username-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.user-profile-username {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 300;
+  color: #262626;
+}
+
+.follow-profile-button {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.follow-profile-button.follow {
+  background: #0095f6;
+  color: white;
+}
+
+.follow-profile-button.follow:hover {
+  background: #0081d6;
+}
+
+.follow-profile-button.following {
+  background: #fafafa;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+}
+
+.follow-profile-button.following:hover {
+  background: #f0f0f0;
+}
+
+.user-profile-stats {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  font-size: 16px;
+  color: #262626;
+}
+
+.stat strong {
+  font-weight: 600;
+}
+
+.user-profile-fullname {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.user-profile-bio {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #262626;
+  line-height: 1.4;
+  max-width: 400px;
+}
+
+.user-profile-tabs {
+  display: flex;
+  border-top: 1px solid #dbdbdb;
+  margin-bottom: 0;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 16px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e8e8e;
+  cursor: pointer;
+  border-top: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #262626;
+}
+
+.tab-button.active {
+  color: #262626;
+  border-top-color: #262626;
+}
+
+.user-profile-content-area {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-top: none;
+  min-height: 400px;
+}
+
+.posts-grid {
+  padding: 20px;
+}
+
+.empty-posts {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-posts h3 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 300;
+  color: #262626;
+}
+
+.empty-posts p {
+  margin: 0;
+  color: #8e8e8e;
+  line-height: 1.5;
+}
+
+.empty-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+  text-align: center;
+}
+
+.empty-tab h3 {
+  margin: 16px 0 8px 0;
+  font-size: 22px;
+  font-weight: 300;
+  color: #262626;
+}
+
+.empty-tab p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  gap: 16px;
+  color: #8e8e8e;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .user-profile-content {
+    padding: 60px 12px 12px;
+  }
+  
+  .user-profile-info {
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .user-profile-avatar {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .user-profile-username {
+    font-size: 24px;
+  }
+  
+  .user-profile-username-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .user-profile-stats {
+    gap: 30px;
+  }
+  
+  .user-profile-tabs {
+    overflow-x: auto;
+  }
+  
+  .tab-button {
+    padding: 12px 20px;
+    white-space: nowrap;
+  }
+}
+

@@ -8,7 +8,7 @@ export const AppContext = createContext()
 
 export const AppContextProvider = (props) => {
 
-    const backendURL = AppConstants.BACKEND_URL
+    const backendURL = AppConstants.getBackendUrl()
     const[isLoggedIn, setIsLoggedIn] = useState(false);
     const[userData, setUserData] = useState(null);
     const [authReady, setAuthReady] = useState(false);

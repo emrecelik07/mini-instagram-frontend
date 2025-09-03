@@ -2,29 +2,38 @@ import { useContext, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Container, Row, Col, Button, Image, Card } from "react-bootstrap";
 import { AppContext } from "../context/AppContext.jsx";
+import { AppConstants } from "../util/constants.js";
 import avatarFallback from "../assets/img/avatarfallback.png";
 import AppNavbar from "../components/AppNavbar.jsx";
+import CreatePost from "../components/CreatePost.jsx";
+import Post from "../components/Post.jsx";
+import { Plus } from "lucide-react";
 
 export default function UserProfilePage() {
     const { username } = useParams();
     const { api, userData } = useContext(AppContext);
     const [profileData, setProfileData] = useState(null);
+    const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showCreatePost, setShowCreatePost] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
 
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
                 setLoading(true);
-                // Search for the user by username
+        
                 const response = await api.get(`/search?q=${username}`);
                 const users = response.data;
                 
-                // Find the exact match for username
                 const user = users.find(u => u.username === username);
                 
                 if (user) {
                     setProfileData(user);
+                    await fetchUserPosts(user.userId);
+                    await checkFollowStatus(user.userId);
                 } else {
                     setError("User not found");
                 }
@@ -40,6 +49,66 @@ export default function UserProfilePage() {
             fetchUserProfile();
         }
     }, [username, api]);
+
+    const fetchUserPosts = async (userId) => {
+        try {
+            const response = await api.get(`/posts/user/${userId}`);
+            setPosts(response.data);
+        } catch (err) {
+            console.error("Failed to fetch user posts:", err);
+            setPosts([]);
+        }
+    };
+
+    const checkFollowStatus = async (userId) => {
+        if (!userData || userData.userId === userId) return;
+        
+        try {
+            const response = await api.get(`/follows/check/${userId}`);
+            setIsFollowing(response.data);
+        } catch (err) {
+            console.error("Failed to check follow status:", err);
+        }
+    };
+
+    const handleFollow = async () => {
+        if (!profileData || !userData || userData.userId === profileData.userId) return;
+        
+        setFollowLoading(true);
+        try {
+            if (isFollowing) {
+                await api.post('/follows/unfollow', { followingUserId: profileData.userId });
+                setIsFollowing(false);
+                setProfileData(prev => ({
+                    ...prev,
+                    followersCount: (prev.followersCount || 0) - 1
+                }));
+            } else {
+                await api.post('/follows/follow', { followingUserId: profileData.userId });
+                setIsFollowing(true);
+                setProfileData(prev => ({
+                    ...prev,
+                    followersCount: (prev.followersCount || 0) + 1
+                }));
+            }
+        } catch (err) {
+            console.error("Failed to follow/unfollow user:", err);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
+
+    const handlePostCreated = async (newPost) => {
+        // Refresh the posts list
+        if (profileData) {
+            await fetchUserPosts(profileData.userId);
+        }
+        // Update the posts count in profile data
+        setProfileData(prev => ({
+            ...prev,
+            postsCount: (prev.postsCount || 0) + 1
+        }));
+    };
 
     if (loading) {
         return (
@@ -85,7 +154,7 @@ export default function UserProfilePage() {
                     <Col xs="auto" className="text-center">
                         <Image
                             src={profileData.profileImageUrl && profileData.profileImageUrl.trim() !== "" ? 
-                                `http://localhost:8080${profileData.profileImageUrl}` : 
+                                `${AppConstants.getBaseUrl()}${profileData.profileImageUrl}` : 
                                 avatarFallback}
                             alt="avatar"
                             roundedCircle
@@ -97,17 +166,36 @@ export default function UserProfilePage() {
                         <div className="d-flex align-items-center gap-3 flex-wrap">
                             <h3 className="m-0">{profileData.username}</h3>
                             {isOwnProfile ? (
-                                <Button as={Link} to="/settings" variant="outline-primary" size="sm">
-                                    Edit Profile
-                                </Button>
+                                <div className="d-flex gap-2">
+                                    <Button as={Link} to="/settings" variant="outline-primary" size="sm">
+                                        Edit Profile
+                                    </Button>
+                                    <Button 
+                                        variant="primary" 
+                                        size="sm"
+                                        onClick={() => setShowCreatePost(true)}
+                                        className="d-flex align-items-center gap-1"
+                                    >
+                                        <Plus size={16} />
+                                        New Post
+                                    </Button>
+                                </div>
                             ) : (
-                                <Button variant="outline-primary" size="sm">
-                                    Follow
+                                <Button 
+                                    variant={isFollowing ? "outline-secondary" : "primary"}
+                                    size="sm"
+                                    onClick={handleFollow}
+                                    disabled={followLoading}
+                                >
+                                    {followLoading ? (
+                                        <div className="spinner-border spinner-border-sm me-1" />
+                                    ) : null}
+                                    {isFollowing ? "Following" : "Follow"}
                                 </Button>
                             )}
                         </div>
                         <div className="d-flex gap-4 mt-3">
-                            <span><strong>{profileData.postsCount ?? 0}</strong> posts</span>
+                            <span><strong>{posts.length}</strong> posts</span>
                             <span><strong>{profileData.followersCount ?? 0}</strong> followers</span>
                             <span><strong>{profileData.followingCount ?? 0}</strong> following</span>
                         </div>
@@ -120,29 +208,42 @@ export default function UserProfilePage() {
                     </Col>
                 </Row>
 
-                {/* Posts grid placeholder */}
-                <Row className="g-3">
-                    {Array.from({ length: profileData.postsCount ?? 0 }).map((_, i) => (
-                        <Col key={i} xs={4}>
-                            <Card className="border-0">
-                                <div style={{ position: "relative", paddingBottom: "100%", background: "#f1f3f5" }}>
-                                    <div style={{
-                                        position: "absolute", inset: 0, display: "grid", placeItems: "center",
-                                        fontSize: 12, color: "#868e96"
-                                    }}>
-                                        Post #{i + 1}
-                                    </div>
-                                </div>
-                            </Card>
-                        </Col>
-                    ))}
-                    {(!profileData.postsCount || profileData.postsCount === 0) && (
-                        <Col xs={12} className="text-center py-5">
-                            <p className="text-muted">No posts yet</p>
-                        </Col>
-                    )}
-                </Row>
+                {/* Posts Section */}
+                {posts.length > 0 ? (
+                    <div className="w-100">
+                        {posts.map((post) => (
+                            <div key={post.postId} className="mb-4">
+                                <Post 
+                                    post={post}
+                                    currentUserId={userData?.userId}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-5">
+                        <p className="text-muted">No posts yet</p>
+                        {isOwnProfile && (
+                            <Button 
+                                variant="primary"
+                                onClick={() => setShowCreatePost(true)}
+                                className="d-flex align-items-center gap-2 mx-auto"
+                            >
+                                <Plus size={16} />
+                                Create Your First Post
+                            </Button>
+                        )}
+                    </div>
+                )}
             </Container>
+
+            {/* Create Post Modal */}
+            {showCreatePost && (
+                <CreatePost 
+                    onPostCreated={handlePostCreated}
+                    onClose={() => setShowCreatePost(false)}
+                />
+            )}
         </div>
     );
 }

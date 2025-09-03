@@ -1,180 +1,181 @@
-// src/pages/ProfilePage.jsx
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { Container, Row, Col, Button, Modal, Image, Card } from "react-bootstrap";
-import { AppContext } from "../context/AppContext.jsx";
-import avatarFallback from "../assets/img/avatarfallback.png";
-import AppNavbar from "../components/AppNavbar.jsx";
+import React, { useState, useEffect, useContext } from 'react';
+import { Container, Row, Col, Button, Image, Card, Nav, Navbar } from 'react-bootstrap';
+import { Edit, Grid3X3, Heart, Bookmark } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../context/AppContext.jsx';
+import { AppConstants } from '../util/constants.js';
+import AppNavbar from '../components/AppNavbar.jsx';
+import Post from '../components/Post.jsx';
+import avatarFallback from '../assets/img/avatarfallback.png';
+import './ProfilePage.css';
 
+const ProfilePage = () => {
+  const { api, userData } = useContext(AppContext);
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('posts');
 
-export default function ProfilePage() {
-    const { userData, api, getUserData,setUserData } = useContext(AppContext);
+  useEffect(() => {
+    if (userData) {
+      fetchProfile();
+      fetchUserPosts();
+      fetchLikedPosts();
+      fetchSavedPosts();
+    }
+  }, [userData]);
 
-    const [showAvatarModal, setShowAvatarModal] = useState(false);
-    const [file, setFile] = useState(null);
-    const [preview, setPreview] = useState("");
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef(null);
-    const [imgVersion, setImgVersion] = useState(0);
+  const fetchProfile = async () => {
+    try {
+      const response = await api.get('/profile');
+      setProfile(response.data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
-    const avatarSrc = useMemo(() => {
-        const base = preview || userData?.profileImageUrl || avatarFallback;
-        if (!base) return avatarFallback;
-        if (typeof base === "string" && base.startsWith("blob:")) return base; // don't touch blobs
-        if (typeof base === "string" && base.startsWith("/api/v1.0")) {
-            // Convert backend URL to frontend URL
-            const backendUrl = "http://localhost:8080";
-            return `${backendUrl}${base}${base.includes("?") ? "&" : "?"}v=${imgVersion}`;
-        }
-        return `${base}${base.includes("?") ? "&" : "?"}v=${imgVersion}`;
-    }, [preview, userData?.profileImageUrl, imgVersion]);
+  const fetchUserPosts = async () => {
+    try {
+      const response = await api.get(`/posts/user/${userData.userId}`);
+      setPosts(response.data);
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchLikedPosts = async () => {
+    try {
+      const response = await api.get('/posts/liked');
+      setLikedPosts(response.data);
+    } catch (error) {
+      console.error('Error fetching liked posts:', error);
+    }
+  };
 
-    useEffect(() => {
-        return () => {
-            if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-        };
-    }, [preview]);
+  const fetchSavedPosts = async () => {
+    try {
+      const response = await api.get('/posts/saved');
+      setSavedPosts(response.data);
+    } catch (error) {
+      console.error('Error fetching saved posts:', error);
+    }
+  };
 
-    const onFileSelect = (e) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        const okTypes = ["image/jpeg", "image/png", "image/webp"];
-        if (!okTypes.includes(f.type)) {
-            alert("Please choose a JPG, PNG, or WebP image.");
-            return;
-        }
-        const MAX_MB = 5;
-        if (f.size > MAX_MB * 1024 * 1024) {
-            alert(`Max file size is ${MAX_MB}MB.`);
-            return;
-        }
-        setFile(f);
-        setPreview(URL.createObjectURL(f));
-    };
+  const handleEditProfile = () => {
+    navigate('/settings');
+  };
 
-    const uploadAvatar = async () => {
-        if (!file) return;
-        setUploading(true);
-        try {
-            const fd = new FormData();
-            fd.append("file", file);
+  const handlePostCreated = () => {
+    fetchUserPosts();
+    if (profile) {
+      setProfile(prev => ({ ...prev, postsCount: prev.postsCount + 1 }));
+    }
+  };
 
-            const { data } = await api.post("/users/me/avatar", fd); // returns ProfileResponse
+  const renderPosts = (postsList) => {
+    if (loading) {
+      return <div className="loading-container">Loading...</div>;
+    }
 
-            // update UI immediately from response, then also re-pull to stay consistent
-            if (data?.profileImageUrl) setUserData((prev) => ({ ...(prev || {}), ...data }));
-            await getUserData();
-
-            setPreview("");
-            setImgVersion((v) => v + 1);
-            setShowAvatarModal(false);
-            setFile(null);
-        } catch (err) {
-            alert(err?.response?.data?.message || "Upload failed");
-        } finally {
-            setUploading(false);
-        }
-    };
+    if (postsList.length === 0) {
+      return (
+        <div className="empty-tab">
+          <h3>No posts yet</h3>
+          <p>When you share photos and videos, they'll appear on your profile.</p>
+        </div>
+      );
+    }
 
     return (
-        <div className="flex flex-col items-center min-vh-100 justify-content-center">
-            <AppNavbar/>
+      <div className="posts-container">
+        {postsList.map((post) => (
+          <Post key={post.postId} post={post} currentUserId={userData?.userId} />
+        ))}
+      </div>
+    );
+  };
 
-            <Container className="flex flex-col items-center min-vh-100 justify-content-center py-4" style={{ maxWidth: 960 }}>
-                {/* Header */}
-                <Row className="align-items-center mb-4">
-                    <Col xs="auto" className="text-center">
-                        <Image
-                            src={avatarSrc}
-                            alt="avatar"
-                            roundedCircle
-                            style={{ width: 140, height: 140, objectFit: "cover", border: "1px solid #ddd" }}
-                            onClick={() => setShowAvatarModal(true)}
-                            role="button"
-                            title="Change photo"
-                        />
-                        <div className="mt-2">
-                            <Button variant="outline-secondary" size="sm" onClick={() => setShowAvatarModal(true)}>
-                                Change Photo
-                            </Button>
-                        </div>
-                    </Col>
+  if (!userData) {
+    return <div>Please log in to view your profile.</div>;
+  }
 
-                    <Col>
-                        <div className="d-flex align-items-center gap-3 flex-wrap">
-                            <h3 className="m-0">{userData?.username || "username"}</h3>
-                            <Button as={Link} to="/settings" variant="outline-primary" size="sm">
-                                Edit Profile
-                            </Button>
-                        </div>
-                        <div className="d-flex gap-4 mt-3">
-                            <span><strong>{userData?.postsCount ?? 0}</strong> posts</span>
-                            <span><strong>{userData?.followersCount ?? 0}</strong> followers</span>
-                            <span><strong>{userData?.followingCount ?? 0}</strong> following</span>
-                        </div>
-                        <div className="mt-2">
-                            <strong>{userData?.name}</strong>
-                        </div>
-                        <div className="mt-2 text-muted">
-                            {userData?.bio || "Tell the world about yourself…"}
-                        </div>
-                    </Col>
-                </Row>
-
-                {/* Posts grid placeholder */}
-                <Row className="g-3">
-                    {Array.from({ length: userData?.postsCount ?? 9 }).map((_, i) => (
-                        <Col key={i} xs={4}>
-                            <Card className="border-0">
-                                <div style={{ position: "relative", paddingBottom: "100%", background: "#f1f3f5" }}>
-                                    <div style={{
-                                        position: "absolute", inset: 0, display: "grid", placeItems: "center",
-                                        fontSize: 12, color: "#868e96"
-                                    }}>
-                                        Post #{i + 1}
-                                    </div>
-                                </div>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
-                {/* Avatar Uploader Modal */}
-                <Modal show={showAvatarModal} onHide={() => setShowAvatarModal(false)} centered>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Update profile photo</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <div className="d-flex flex-column align-items-center">
-                            <Image
-                                src={preview || avatarSrc}
-                                alt="preview"
-                                roundedCircle
-                                style={{ width: 160, height: 160, objectFit: "cover", border: "1px solid #ddd" }}
-                                className="mb-3"
-                            />
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                style={{ display: "none" }}
-                                onChange={onFileSelect}
-                            />
-                            <div className="d-flex gap-2">
-                                <Button variant="outline-secondary" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                                    Choose Image
-                                </Button>
-                                <Button variant="primary" onClick={uploadAvatar} disabled={!file || uploading}>
-                                    {uploading ? "Uploading…" : "Upload"}
-                                </Button>
-                            </div>
-                        </div>
-                    </Modal.Body>
-                </Modal>
-            </Container>
+  return (
+    <div className="profile-page">
+      <AppNavbar />
+      <div className="profile-content">
+        <div className="profile-header">
+          <div className="profile-avatar-section">
+            <Image
+              src={profile?.profileImageUrl ? `${AppConstants.getBaseUrl()}${profile.profileImageUrl}` : avatarFallback}
+              alt="Profile"
+              className="profile-avatar"
+            />
+          </div>
+          <div className="profile-info-section">
+            <div className="profile-username-section">
+              <h1 className="profile-username">{profile?.username || userData.username}</h1>
+              <div className="profile-actions">
+                <Button variant="outline-secondary" size="sm" onClick={handleEditProfile} className="edit-profile-button">
+                  <Edit size={16} className="me-1" />
+                  Edit Profile
+                </Button>
+              </div>
+            </div>
+            <div className="profile-stats">
+              <span className="stat">
+                <strong>{profile?.postsCount || posts.length}</strong> posts
+              </span>
+              <span className="stat">
+                <strong>{profile?.followersCount || 0}</strong> followers
+              </span>
+              <span className="stat">
+                <strong>{profile?.followingCount || 0}</strong> following
+              </span>
+            </div>
+            <div className="profile-fullname">{profile?.name || userData.name}</div>
+            {profile?.bio && <div className="profile-bio">{profile.bio}</div>}
+          </div>
         </div>
 
+        <div className="profile-tabs">
+          <button 
+            className={`tab-button ${activeTab === 'posts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('posts')}
+          >
+            <Grid3X3 size={16} />
+            Posts
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'liked' ? 'active' : ''}`}
+            onClick={() => setActiveTab('liked')}
+          >
+            <Heart size={16} />
+            Liked
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+          >
+            <Bookmark size={16} />
+            Saved
+          </button>
+        </div>
 
-    );
-}
+        <div className="profile-content-area">
+          <div className="posts-grid">
+            {activeTab === 'posts' && renderPosts(posts)}
+            {activeTab === 'liked' && renderPosts(likedPosts)}
+            {activeTab === 'saved' && renderPosts(savedPosts)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePage;

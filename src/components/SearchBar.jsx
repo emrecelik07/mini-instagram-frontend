@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { Form, FormControl, Dropdown, Image } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
+import { AppConstants } from "../util/constants.js";
 import avatarFallback from "../assets/img/avatarfallback.png";
 
 export default function SearchBar() {
@@ -98,7 +99,7 @@ export default function SearchBar() {
                             >
                                 <Image
                                     src={user.profileImageUrl && user.profileImageUrl.trim() !== "" ? 
-                                        `http://localhost:8080${user.profileImageUrl}` : 
+                                        `${AppConstants.getBaseUrl()}${user.profileImageUrl}` : 
                                         avatarFallback}
                                     alt={user.username}
                                     roundedCircle

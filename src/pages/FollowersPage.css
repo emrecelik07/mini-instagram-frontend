@@ -1,0 +1,101 @@
+.followers-page {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.followers-content {
+  padding-top: 60px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 60px 20px 20px;
+}
+
+.followers-header {
+  margin-bottom: 24px;
+  padding: 20px 0;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f0f8ff;
+}
+
+.followers-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.followers-list {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.empty-followers {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e8e;
+}
+
+.empty-followers h3 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 300;
+  color: #262626;
+}
+
+.empty-followers p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  gap: 16px;
+  color: #8e8e8e;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .followers-content {
+    padding: 60px 12px 12px;
+  }
+  
+  .followers-header h1 {
+    font-size: 20px;
+  }
+}
+
