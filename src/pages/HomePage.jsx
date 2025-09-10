@@ -32,6 +32,10 @@ function HomePage() {
         setPosts(prevPosts => [newPost, ...prevPosts]);
     };
 
+    const handlePostDeleted = (deletedPostId) => {
+        setPosts(prevPosts => prevPosts.filter(post => post.postId !== deletedPostId));
+    };
+
     if (isLoading) {
         return (
             <div className="home-page">
@@ -82,6 +86,7 @@ function HomePage() {
                                     key={post.postId}
                                     post={post}
                                     currentUserId={userData?.userId}
+                                    onPostDeleted={handlePostDeleted}
                                 />
                             ))}
                         </div>

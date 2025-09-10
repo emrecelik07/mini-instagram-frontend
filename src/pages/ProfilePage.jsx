@@ -6,6 +6,7 @@ import { AppContext } from '../context/AppContext.jsx';
 import { AppConstants } from '../util/constants.js';
 import AppNavbar from '../components/AppNavbar.jsx';
 import Post from '../components/Post.jsx';
+import FollowListModal from "../components/FollowListModal.jsx";
 import avatarFallback from '../assets/img/avatarfallback.png';
 import './ProfilePage.css';
 
@@ -18,6 +19,10 @@ const ProfilePage = () => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('posts');
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [followModalTitle, setFollowModalTitle] = useState("");
+  const [followUsers, setFollowUsers] = useState([]);
+  const [followUsersLoading, setFollowUsersLoading] = useState(false);
 
   useEffect(() => {
     if (userData) {
@@ -45,6 +50,22 @@ const ProfilePage = () => {
       console.error('Error fetching user posts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openFollowList = async (type) => {
+    if (!userData) return;
+    setFollowModalTitle(type === 'followers' ? 'Followers' : 'Following');
+    setShowFollowModal(true);
+    setFollowUsersLoading(true);
+    try {
+      const endpoint = type === 'followers' ? `/follows/followers/${userData.userId}` : `/follows/following/${userData.userId}`;
+      const res = await api.get(endpoint);
+      setFollowUsers(res.data || []);
+    } catch (e) {
+      setFollowUsers([]);
+    } finally {
+      setFollowUsersLoading(false);
     }
   };
 
@@ -77,6 +98,15 @@ const ProfilePage = () => {
     }
   };
 
+  const handlePostDeleted = (deletedPostId) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.postId !== deletedPostId));
+    setLikedPosts(prevPosts => prevPosts.filter(post => post.postId !== deletedPostId));
+    setSavedPosts(prevPosts => prevPosts.filter(post => post.postId !== deletedPostId));
+    if (profile) {
+      setProfile(prev => ({ ...prev, postsCount: Math.max(0, prev.postsCount - 1) }));
+    }
+  };
+
   const renderPosts = (postsList) => {
     if (loading) {
       return <div className="loading-container">Loading...</div>;
@@ -94,7 +124,7 @@ const ProfilePage = () => {
     return (
       <div className="posts-container">
         {postsList.map((post) => (
-          <Post key={post.postId} post={post} currentUserId={userData?.userId} />
+          <Post key={post.postId} post={post} currentUserId={userData?.userId} onPostDeleted={handlePostDeleted} />
         ))}
       </div>
     );
@@ -130,10 +160,10 @@ const ProfilePage = () => {
               <span className="stat">
                 <strong>{profile?.postsCount || posts.length}</strong> posts
               </span>
-              <span className="stat">
+              <span className="stat" role="button" onClick={() => openFollowList('followers')}>
                 <strong>{profile?.followersCount || 0}</strong> followers
               </span>
-              <span className="stat">
+              <span className="stat" role="button" onClick={() => openFollowList('following')}>
                 <strong>{profile?.followingCount || 0}</strong> following
               </span>
             </div>
@@ -174,6 +204,14 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+
+      <FollowListModal
+        show={showFollowModal}
+        title={followModalTitle}
+        users={followUsers}
+        loading={followUsersLoading}
+        onHide={() => setShowFollowModal(false)}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Container, Row, Col, Button, Image, Card } from "react-bootstrap";
 import { AppContext } from "../context/AppContext.jsx";
 import { AppConstants } from "../util/constants.js";
@@ -7,11 +7,14 @@ import avatarFallback from "../assets/img/avatarfallback.png";
 import AppNavbar from "../components/AppNavbar.jsx";
 import CreatePost from "../components/CreatePost.jsx";
 import Post from "../components/Post.jsx";
+import FollowListModal from "../components/FollowListModal.jsx";
 import { Plus } from "lucide-react";
+import "./UserProfilePage.css";
 
 export default function UserProfilePage() {
     const { username } = useParams();
     const { api, userData } = useContext(AppContext);
+    const navigate = useNavigate();
     const [profileData, setProfileData] = useState(null);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,8 +22,18 @@ export default function UserProfilePage() {
     const [showCreatePost, setShowCreatePost] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
+    const [showFollowModal, setShowFollowModal] = useState(false);
+    const [followModalTitle, setFollowModalTitle] = useState("");
+    const [followUsers, setFollowUsers] = useState([]);
+    const [followUsersLoading, setFollowUsersLoading] = useState(false);
 
     useEffect(() => {
+        // If visiting our own profile via /user/:username, redirect to /profile to show tabs
+        if (userData && username && userData.username === username) {
+            navigate('/profile', { replace: true });
+            return;
+        }
+
         const fetchUserProfile = async () => {
             try {
                 setLoading(true);
@@ -45,10 +58,10 @@ export default function UserProfilePage() {
             }
         };
 
-        if (username) {
+        if (username && (!userData || userData.username !== username)) {
             fetchUserProfile();
         }
-    }, [username, api]);
+    }, [username, api, userData, navigate]);
 
     const fetchUserPosts = async (userId) => {
         try {
@@ -108,6 +121,30 @@ export default function UserProfilePage() {
             ...prev,
             postsCount: (prev.postsCount || 0) + 1
         }));
+    };
+
+    const handlePostDeleted = (deletedPostId) => {
+        setPosts(prevPosts => prevPosts.filter(post => post.postId !== deletedPostId));
+        setProfileData(prev => ({
+            ...prev,
+            postsCount: Math.max(0, (prev.postsCount || 0) - 1)
+        }));
+    };
+
+    const openFollowList = async (type) => {
+        if (!profileData) return;
+        setFollowModalTitle(type === "followers" ? "Followers" : "Following");
+        setShowFollowModal(true);
+        setFollowUsersLoading(true);
+        try {
+            const endpoint = type === "followers" ? `/follows/followers/${profileData.userId}` : `/follows/following/${profileData.userId}`;
+            const res = await api.get(endpoint);
+            setFollowUsers(res.data || []);
+        } catch (e) {
+            setFollowUsers([]);
+        } finally {
+            setFollowUsersLoading(false);
+        }
     };
 
     if (loading) {
@@ -196,8 +233,12 @@ export default function UserProfilePage() {
                         </div>
                         <div className="d-flex gap-4 mt-3">
                             <span><strong>{posts.length}</strong> posts</span>
-                            <span><strong>{profileData.followersCount ?? 0}</strong> followers</span>
-                            <span><strong>{profileData.followingCount ?? 0}</strong> following</span>
+                            <span role="button" onClick={() => openFollowList("followers")}>
+                                <strong>{profileData.followersCount ?? 0}</strong> followers
+                            </span>
+                            <span role="button" onClick={() => openFollowList("following")}>
+                                <strong>{profileData.followingCount ?? 0}</strong> following
+                            </span>
                         </div>
                         <div className="mt-2">
                             <strong>{profileData.name}</strong>
@@ -208,33 +249,31 @@ export default function UserProfilePage() {
                     </Col>
                 </Row>
 
+                {/* Tabs (single) */}
+                <div className="user-profile-tabs">
+                    <button className="tab-button active">Posts</button>
+                </div>
+
                 {/* Posts Section */}
-                {posts.length > 0 ? (
-                    <div className="w-100">
-                        {posts.map((post) => (
-                            <div key={post.postId} className="mb-4">
-                                <Post 
-                                    post={post}
-                                    currentUserId={userData?.userId}
-                                />
+                <div className="user-profile-content-area">
+                    <div className="posts-grid">
+                        {posts.length > 0 ? (
+                            posts.map((post) => (
+                                <div key={post.postId} className="mb-4">
+                                    <Post 
+                                        post={post}
+                                        currentUserId={userData?.userId}
+                                        onPostDeleted={handlePostDeleted}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-tab">
+                                <h3>No posts yet</h3>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-5">
-                        <p className="text-muted">No posts yet</p>
-                        {isOwnProfile && (
-                            <Button 
-                                variant="primary"
-                                onClick={() => setShowCreatePost(true)}
-                                className="d-flex align-items-center gap-2 mx-auto"
-                            >
-                                <Plus size={16} />
-                                Create Your First Post
-                            </Button>
                         )}
                     </div>
-                )}
+                </div>
             </Container>
 
             {/* Create Post Modal */}
@@ -244,6 +283,14 @@ export default function UserProfilePage() {
                     onClose={() => setShowCreatePost(false)}
                 />
             )}
+            <FollowListModal
+                show={showFollowModal}
+                title={followModalTitle}
+                users={followUsers}
+                loading={followUsersLoading}
+                onHide={() => setShowFollowModal(false)}
+            />
         </div>
     );
 }
+

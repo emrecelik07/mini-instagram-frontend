@@ -155,37 +155,59 @@ export default function SettingsPage() {
                                     style={{ display: 'none' }}
                                 />
                                 
-                                {avatarFile && (
-                                    <div className="text-center">
-                                        <Button 
-                                            variant="primary" 
-                                            onClick={handleAvatarUpload}
-                                            disabled={avatarLoading}
-                                            className="me-2"
-                                        >
-                                            {avatarLoading ? (
-                                                <>
-                                                    <Loader2 size={16} className="spinner me-1" />
-                                                    Uploading...
-                                                </>
-                                            ) : (
-                                                "Upload Avatar"
-                                            )}
-                                        </Button>
-                                        <Button 
-                                            variant="outline-secondary" 
-                                            onClick={() => {
-                                                setAvatarFile(null);
-                                                setAvatarPreview("");
-                                                if (fileInputRef.current) {
-                                                    fileInputRef.current.value = '';
-                                                }
-                                            }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </div>
-                                )}
+                                <div className="text-center">
+                                    {avatarFile ? (
+                                        <>
+                                            <Button 
+                                                variant="primary" 
+                                                onClick={handleAvatarUpload}
+                                                disabled={avatarLoading}
+                                                className="me-2"
+                                            >
+                                                {avatarLoading ? (
+                                                    <>
+                                                        <Loader2 size={16} className="spinner me-1" />
+                                                        Uploading...
+                                                    </>
+                                                ) : (
+                                                    "Upload Avatar"
+                                                )}
+                                            </Button>
+                                            <Button 
+                                                variant="outline-secondary" 
+                                                onClick={() => {
+                                                    setAvatarFile(null);
+                                                    setAvatarPreview("");
+                                                    if (fileInputRef.current) {
+                                                        fileInputRef.current.value = '';
+                                                    }
+                                                }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        userData?.profileImageUrl ? (
+                                            <Button 
+                                                variant="outline-danger"
+                                                onClick={async () => {
+                                                    try {
+                                                        setAvatarLoading(true);
+                                                        await api.delete('/users/me/avatar');
+                                                        await getUserData();
+                                                        toast.success('Profile photo removed');
+                                                    } catch (err) {
+                                                        toast.error('Unable to remove photo');
+                                                    } finally {
+                                                        setAvatarLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                Remove Photo
+                                            </Button>
+                                        ) : null
+                                    )}
+                                </div>
                             </Card.Body>
                         </Card>
 
