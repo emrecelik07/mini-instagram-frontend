@@ -7,6 +7,7 @@ import HomePage    from "./pages/HomePage.jsx";
 import WelcomePage from "./pages/WelcomePage.jsx";
 import LoginPage   from "./pages/LoginPage.jsx";
 import ResetPasswordOtpPage from "./pages/ResetPasswordOtpPage.jsx";
+import VerifyCodePage from "./pages/VerifyCodePage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import UserProfilePage from "./pages/UserProfilePage.jsx";
@@ -47,6 +48,15 @@ export default function App() {
                         element={
                             <PublicRoute>
                                 <ResetPasswordOtpPage/>
+                            </PublicRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/verify"
+                        element={
+                            <PublicRoute>
+                                <VerifyCodePage />
                             </PublicRoute>
                         }
                     />

@@ -1,10 +1,12 @@
 import {AppContext} from "../context/AppContext.jsx";
 import {assets} from "../assets/assets.js";
 import {useContext} from "react";
+import { useNavigate } from "react-router-dom";
 
 
 function WelcomePageContext(){
     const {userData} = useContext(AppContext);
+    const navigate = useNavigate();
 
     return(
 
@@ -22,7 +24,7 @@ function WelcomePageContext(){
                 Let's find your interests and post some stuff!
             </p>
 
-            <button className="btn btn-outline-dark rounded-pill px-4 py-2">
+            <button className="btn btn-outline-dark rounded-pill px-4 py-2" onClick={() => navigate("/")}>
                 Let's go
             </button>
 

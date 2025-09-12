@@ -29,12 +29,15 @@ function LoginPage() {
         setLoading(true);
         try {
             if(activeTab === 'signup') {
-                //register api
+                // Register
                 const response = await api.post("/register", { name, username, email, password });
                 if(response.status === 201){
-                    navigate("/login")
-                    toast.success("User registered successfully.");
-                }else {
+                    // Do NOT login. Send OTP publicly and go to verify
+                    try { await api.post('/send-otp-public', null, { params: { email } }); } catch {}
+                    localStorage.setItem('verifyEmail', email);
+                    toast.success("Account created. Please verify your email.");
+                    navigate("/verify", { state: { email } });
+                } else {
                     toast.error("Email already exists");
                 }
 
@@ -45,11 +48,20 @@ function LoginPage() {
                     setIsLoggedIn(true)
                     getUserData();
                     navigate("/welcome")
-                }else {
+                } else {
                     toast.error("Wrong email or password");
                 }
             }
         }catch(err){
+            const code = err?.response?.data?.code;
+            if (code === 'UNVERIFIED') {
+                try {
+                    await api.post('/send-otp-public', null, { params: { email } });
+                } catch {}
+                toast.info('Please verify your email to continue');
+                navigate('/verify', { state: { email } });
+                return;
+            }
             toast.error(err?.response?.data?.message || "Something went wrong");
         }finally{
             setLoading(false);}

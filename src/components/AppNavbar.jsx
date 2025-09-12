@@ -83,7 +83,7 @@ export default function AppNavbar() {
                                     }
                                 >
                                     <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
-                                    <NavDropdown.Item as={Link} to="/saved">Saved</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/settings">Settings</NavDropdown.Item>
                                     <NavDropdown.Divider />
                                     <NavDropdown.Item onClick={handleLogout}>
                                         Log out

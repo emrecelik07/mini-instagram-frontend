@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useRef } from "react";
-import { Container, Row, Col, Button, Form, Card, Alert, Image } from "react-bootstrap";
+import { Container, Row, Col, Button, Form, Card, Alert, Image, Modal } from "react-bootstrap";
 import { AppContext } from "../context/AppContext.jsx";
 import { AppConstants } from "../util/constants.js";
 import AppNavbar from "../components/AppNavbar.jsx";
@@ -33,6 +33,13 @@ export default function SettingsPage() {
     
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showResetPwd, setShowResetPwd] = useState(false);
+    const [resetLoading, setResetLoading] = useState(false);
+    const [resetEmail, setResetEmail] = useState("");
+    const [resetOtp, setResetOtp] = useState("");
+    const [resetNewPwd, setResetNewPwd] = useState("");
+    const [deleting, setDeleting] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -112,6 +119,38 @@ export default function SettingsPage() {
             setMessage(errorMsg);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        setDeleting(true);
+        try {
+            await api.delete('/profile');
+            toast.success('Your account has been deleted');
+            // best-effort logout/reset and redirect
+            try { await api.post('/logout'); } catch {}
+            window.location.href = '/login';
+        } catch (err) {
+            const errorMsg = err?.response?.data?.message || 'Failed to delete account';
+            toast.error(errorMsg);
+        } finally {
+            setDeleting(false);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!resetEmail || !resetNewPwd) return toast.error('Fill all fields');
+        setResetLoading(true);
+        try {
+            await api.post('/change-password', { currentPassword: resetEmail, newPassword: resetNewPwd });
+            // Note: resetEmail is repurposed input for current password in this modal
+            toast.success('Password updated');
+            setShowResetPwd(false);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Failed to reset password');
+        } finally {
+            setResetLoading(false);
         }
     };
 
@@ -274,9 +313,61 @@ export default function SettingsPage() {
                                 </Form>
                             </Card.Body>
                         </Card>
+
+                        <Card className="shadow-sm mt-4">
+                            <Card.Header className="bg-white">
+                                <h4 className="mb-0 text-danger">Danger Zone</h4>
+                            </Card.Header>
+                            <Card.Body>
+                                <p className="text-muted mb-3">Delete your account and all associated data. This action cannot be undone.</p>
+                                <Button variant="outline-danger" onClick={() => setShowDeleteModal(true)}>
+                                    Delete Account
+                                </Button>
+                                <Button variant="outline-secondary" className="ms-2" onClick={() => setShowResetPwd(true)}>
+                                    Reset Password
+                                </Button>
+                            </Card.Body>
+                        </Card>
                     </Col>
                 </Row>
             </Container>
+
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Delete account?</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    This will permanently remove your account and data. This cannot be undone.
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={handleDeleteAccount} disabled={deleting}>
+                        {deleting ? 'Deleting…' : 'Delete'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showResetPwd} onHide={() => setShowResetPwd(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Change password</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="mb-3">
+                        <Form.Label>Current password</Form.Label>
+                        <Form.Control type="password" value={resetEmail} onChange={(e)=>setResetEmail(e.target.value)} />
+                    </div>
+                    <div className="mb-3">
+                        <Form.Label>New password</Form.Label>
+                        <Form.Control type="password" value={resetNewPwd} onChange={(e)=>setResetNewPwd(e.target.value)} />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={()=>setShowResetPwd(false)} disabled={resetLoading}>Cancel</Button>
+                    <Button variant="primary" onClick={handleResetPassword} disabled={resetLoading}>Update Password</Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }
